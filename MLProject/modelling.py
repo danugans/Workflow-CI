@@ -13,9 +13,6 @@ warnings.filterwarnings("ignore")
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, "namadataset_preprocessing")
 
-# ❗ JANGAN set experiment kalau pakai MLflow Projects
-# mlflow.set_experiment("Eksperiment_Danu-setiawan")
-
 
 def load_data():
     X_train = joblib.load(os.path.join(DATA_DIR, "X_train.joblib"))
