@@ -15,8 +15,8 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, "namadataset_preprocessing")
 MLRUNS_DIR = os.path.join(BASE_DIR, "mlruns")
 
-mlflow.set_tracking_uri(f"file:{MLRUNS_DIR}")
-mlflow.set_experiment("Workflow_CI_Model_Danu-setiawan")
+# mlflow.set_tracking_uri(f"file:{MLRUNS_DIR}")
+# mlflow.set_experiment("Workflow_CI_Model_Danu-setiawan")
 
 
 def load_data():
