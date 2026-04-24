@@ -12,6 +12,10 @@ warnings.filterwarnings("ignore")
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, "namadataset_preprocessing")
+MLRUNS_DIR = os.path.join(BASE_DIR, "mlruns")
+
+mlflow.set_tracking_uri(f"file:{MLRUNS_DIR}")
+mlflow.set_experiment("Eksperiment_Danu-setiawan")
 
 
 def load_data():
@@ -25,32 +29,43 @@ def load_data():
 def train():
     X_train, X_test, y_train, y_test = load_data()
 
-    model = LogisticRegression(
-        class_weight='balanced',
-        max_iter=1000,
-        random_state=42
-    )
+    with mlflow.start_run():
 
-    model.fit(X_train, y_train)
+        model = LogisticRegression(
+            class_weight='balanced',
+            max_iter=1000,
+            random_state=42
+        )
 
-    y_prob = model.predict_proba(X_test)[:, 1]
-    threshold = 0.3
-    y_pred = (y_prob > threshold).astype(int)
+        model.fit(X_train, y_train)
 
-    acc = accuracy_score(y_test, y_pred)
-    prec = precision_score(y_test, y_pred)
-    rec = recall_score(y_test, y_pred)
-    f1 = f1_score(y_test, y_pred)
+        y_prob = model.predict_proba(X_test)[:, 1]
+        threshold = 0.3
+        y_pred = (y_prob > threshold).astype(int)
 
-    mlflow.log_param("model", "LogisticRegression")
-    mlflow.log_param("threshold", threshold)
+        acc = accuracy_score(y_test, y_pred)
+        prec = precision_score(y_test, y_pred)
+        rec = recall_score(y_test, y_pred)
+        f1 = f1_score(y_test, y_pred)
 
-    mlflow.log_metric("accuracy", acc)
-    mlflow.log_metric("precision", prec)
-    mlflow.log_metric("recall", rec)
-    mlflow.log_metric("f1_score", f1)
+        print("Accuracy :", round(acc, 4))
+        print("Precision:", round(prec, 4))
+        print("Recall   :", round(rec, 4))
+        print("F1 Score :", round(f1, 4))
 
-    mlflow.sklearn.log_model(model, "model", input_example=X_train[:5])
+        mlflow.log_param("model", "LogisticRegression")
+        mlflow.log_param("threshold", threshold)
+
+        mlflow.log_metric("accuracy", acc)
+        mlflow.log_metric("precision", prec)
+        mlflow.log_metric("recall", rec)
+        mlflow.log_metric("f1_score", f1)
+
+        mlflow.sklearn.log_model(
+            model,
+            "model",
+            input_example=X_train[:5]
+        )
 
 
 if __name__ == "__main__":
