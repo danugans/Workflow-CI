@@ -1,4 +1,6 @@
-name: stroke-project
+name: workflow-ci-project
+
+conda_env: conda.yaml
 
 entry_points:
   main:

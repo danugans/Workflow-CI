@@ -15,16 +15,16 @@ jobs:
     - name: Setup Python
       uses: actions/setup-python@v5
       with:
-        python-version: "3.11.9"
+        python-version: "3.11"
 
     - name: Install MLflow
       run: |
         pip install mlflow==2.19.0
 
-    - name: Run Training (NO MLFLOW PROJECT)
+    - name: Run MLflow Project
       run: |
         cd MLProject
-        python modelling.py
+        mlflow run .
 
     - name: Upload MLflow artifacts
       uses: actions/upload-artifact@v4
