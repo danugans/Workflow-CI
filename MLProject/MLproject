@@ -1,4 +1,4 @@
-name: workflow-ci-project
+name: stroke-project
 
 conda_env: conda.yaml
 
