@@ -1,55 +1,37 @@
-name: CI MLflow
+name: MLflow CI Training
 
 on:
   push:
-    branches: ["main"]
+    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
-  train:
+  train-model:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Setup Python
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: Check environment
-        run: |
-          python --version
-          pip --version
-
       - name: Install dependencies
         run: |
-          pip install --upgrade pip
-          pip install mlflow==2.19.0
-          pip install scikit-learn==1.5.2
-          pip install pandas==2.2.2 numpy==1.26.4
-          pip install matplotlib==3.8.4 joblib==1.4.2
-
-      - name: Set MLflow Tracking URI
-        run: |
-          echo "MLFLOW_TRACKING_URI=file:./mlruns" >> $GITHUB_ENV
+          python -m pip install --upgrade pip
+          pip install mlflow==2.19.0 scikit-learn pandas numpy joblib
 
       - name: Run MLflow Project
         run: |
           cd MLProject
-          mlflow run .
+          # Menjalankan mlflow project di dalam folder MLProject
+          mlflow run . --env-manager local
 
-      - name: Get latest run_id
-        run: |
-          cd MLProject/mlruns
-          RUN_ID=$(ls */*/ -t | head -n 1)
-          echo "RUN_ID=$RUN_ID" >> $GITHUB_ENV
-
-      - name: Upload MLflow artifacts
+      - name: Upload mlruns artifact
         uses: actions/upload-artifact@v4
         with:
-          name: mlflow-results
-          path: MLProject/mlruns/
-
-      - name: Complete job
-        run: echo "Training selesai dan artifact berhasil diupload"
+          name: mlruns-artifact
+          # Mengambil folder mlruns yang ada di dalam folder MLProject
+          path: MLProject/mlruns
