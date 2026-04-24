@@ -21,10 +21,10 @@ jobs:
       run: |
         pip install mlflow==2.19.0
 
-    - name: Run MLflow Project
+    - name: Run Training (NO MLFLOW PROJECT)
       run: |
         cd MLProject
-        mlflow run . --experiment-name "Eksperiment_Danu-setiawan"
+        python modelling.py
 
     - name: Upload MLflow artifacts
       uses: actions/upload-artifact@v4
