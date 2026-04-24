@@ -27,7 +27,7 @@ jobs:
         run: |
           cd MLProject
           # Menjalankan mlflow project di dalam folder MLProject
-          mlflow run . --env-manager local
+          mlflow run . --experiment-name "Workflow_CI_Danu-setiawan"
 
       - name: Upload mlruns artifact
         uses: actions/upload-artifact@v4

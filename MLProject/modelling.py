@@ -1,49 +1,66 @@
 import os
 import joblib
+import warnings
 import mlflow
 import mlflow.sklearn
-from sklearn.ensemble import RandomForestClassifier
+import numpy as np
+
+from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 
-# Mendapatkan lokasi folder saat ini (yaitu folder MLProject)
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_DIR = os.path.join(BASE_DIR, "namadataset_preprocessing")
-# Folder mlruns akan dibuat TEPAT di dalam folder MLProject
-MLRUNS_DIR = os.path.join(BASE_DIR, "mlruns")
+warnings.filterwarnings("ignore")
 
-# Setup MLflow Tracking ke folder lokal
-mlflow.set_tracking_uri(f"file:{MLRUNS_DIR}")
-mlflow.set_experiment("Workflow_CI_Model_Mohamad_Saiful_Rizal")
+# Path setup
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_PATH = os.path.join(ROOT_DIR, "namadataset_preprocessing")
+TRACKING_PATH = os.path.join(ROOT_DIR, "mlruns")
 
-def load_data(data_dir=DATA_DIR):
-    # Memastikan file data ada sebelum di-load
-    X_train = joblib.load(os.path.join(data_dir, "X_train.joblib"))
-    X_test = joblib.load(os.path.join(data_dir, "X_test.joblib"))
-    y_train = joblib.load(os.path.join(data_dir, "y_train.joblib"))
-    y_test = joblib.load(os.path.join(data_dir, "y_test.joblib"))
+# Arahkan MLflow ke folder lokal
+mlflow.set_tracking_uri(f"file:{TRACKING_PATH}")
+
+
+def fetch_data():
+    X_train = joblib.load(os.path.join(DATA_PATH, "X_train.joblib"))
+    X_test = joblib.load(os.path.join(DATA_PATH, "X_test.joblib"))
+    y_train = joblib.load(os.path.join(DATA_PATH, "y_train.joblib"))
+    y_test = joblib.load(os.path.join(DATA_PATH, "y_test.joblib"))
     return X_train, X_test, y_train, y_test
 
-def train_model():
-    X_train, X_test, y_train, y_test = load_data()
 
-    # Mengaktifkan autolog agar folder 'artifacts/model' otomatis tercipta
+def build_and_evaluate():
+    X_train, X_test, y_train, y_test = fetch_data()
+
+    # Aktifkan autolog (tanpa start_run)
     mlflow.sklearn.autolog()
 
-    # Inisiasi dan fit model
-    model = RandomForestClassifier(n_estimators=100, random_state=42)
-    model.fit(X_train, y_train)
+    clf = LogisticRegression(
+        class_weight="balanced",
+        max_iter=1000,
+        solver="lbfgs"
+    )
 
-    # Prediksi dan Evaluasi
-    y_pred = model.predict(X_test)
-    acc = accuracy_score(y_test, y_pred)
-    prec = precision_score(y_test, y_pred)
-    rec = recall_score(y_test, y_pred)
-    f1 = f1_score(y_test, y_pred)
+    clf.fit(X_train, y_train)
 
-    print(f"Accuracy : {acc}")
-    print(f"Precision: {prec}")
-    print(f"Recall   : {rec}")
-    print(f"F1 Score : {f1}")
+    # Probabilitas + threshold custom (ini pembeda kamu)
+    probs = clf.predict_proba(X_test)[:, 1]
+    cut_off = 0.3
+    preds = np.where(probs > cut_off, 1, 0)
+
+    # Evaluasi manual (biar tetap ada kontrol)
+    acc = accuracy_score(y_test, preds)
+    prec = precision_score(y_test, preds)
+    rec = recall_score(y_test, preds)
+    f1 = f1_score(y_test, preds)
+
+    print(f"Accuracy : {acc:.4f}")
+    print(f"Precision: {prec:.4f}")
+    print(f"Recall   : {rec:.4f}")
+    print(f"F1 Score : {f1:.4f}")
+
+    # Logging tambahan (autolog tidak cover threshold)
+    mlflow.log_param("decision_threshold", cut_off)
+    mlflow.log_metric("custom_f1", f1)
+
 
 if __name__ == "__main__":
-    train_model()
+    build_and_evaluate()
